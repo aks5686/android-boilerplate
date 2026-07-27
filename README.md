@@ -12,7 +12,7 @@ Production-ready Android architecture boilerplate with Clean Architecture, MVVM,
 
 ### Option A: Use as a GitHub template
 
-1. Click **Use this template** on the repository's GitHub page (or **Fork** if templates aren't enabled).
+1. Click [**Use this template**](https://github.com/aks5686/android-boilerplate/generate) (or **Fork** if templates aren't enabled).
 2. Clone your new repository:
    ```bash
    git clone https://github.com/<your-account>/<your-repo>.git
