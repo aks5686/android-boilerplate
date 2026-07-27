@@ -8,50 +8,6 @@
 
 Production-ready Android architecture boilerplate with Clean Architecture, MVVM, Jetpack Compose, Kotlin Coroutines, and GitHub Actions CI/CD.
 
-> Note: replace `aks5686` in the CI badge URL above with your GitHub username/org once you rename the repo.
-
-## Architecture
-
-The app follows **Clean Architecture** split into three layers per feature, plus a shared `core` layer and a hand-rolled `di` container (no Dagger/Hilt/Koin — dependencies are wired manually so the wiring stays easy to read and step through).
-
-```
-presentation  →  domain  →  data
-   (UI/VM)      (interfaces)  (repositories/network/storage)
-```
-
-- **presentation** — Jetpack Compose screens + `ViewModel`s exposing UI state as `StateFlow`. Only depends on `domain` interfaces.
-- **domain** — Plain Kotlin: use case interfaces (`*UseCaseProtocol`) and their implementations, plus domain models. No Android framework imports.
-- **data** — Repositories that implement domain contracts by talking to network (Retrofit) and storage (`EncryptedSharedPreferences`), mapping DTOs to domain models.
-
-Dependencies point inward (`presentation → domain ← data`); `domain` never imports from `data` or `presentation`.
-
-### Folder structure
-
-```
-app/src/main/java/com/aks/boilerplate/
-├── BoilerplateApplication.kt        # Application class, owns the DI container
-├── MainActivity.kt
-├── core/
-│   ├── network/                     # NetworkClient (Retrofit + OkHttp), ApiError
-│   ├── storage/                     # SecureStorage (EncryptedSharedPreferences)
-│   └── extensions/                  # Context/Flow extensions shared across features
-├── di/
-│   └── AppModule.kt                 # Manual DI graph (lazy singletons + factories)
-├── features/
-│   └── auth/
-│       ├── data/                    # AuthRepository, AuthApi, DTOs
-│       ├── domain/                  # AuthUseCaseProtocol, AuthUseCase, domain models
-│       └── presentation/            # LoginViewModel, LoginScreen
-└── ui/
-    └── theme/                       # Color, Type, Theme, Spacing/Radius design tokens
-```
-
-Each new feature follows the same `data / domain / presentation` split under `features/<feature-name>/`.
-
-### Dependency injection
-
-There is no DI framework. [`AppModule`](app/src/main/java/com/aks/boilerplate/di/AppModule.kt) is a plain class that lazily builds singletons (network client, secure storage, repositories) and exposes factory functions for objects that need a new instance per screen (ViewModels). It's constructed once in [`BoilerplateApplication`](app/src/main/java/com/aks/boilerplate/BoilerplateApplication.kt) and handed to `Activity`/`Composable` call sites.
-
 ## Getting Started
 
 ### Option A: Use as a GitHub template
@@ -109,3 +65,45 @@ cd android-boilerplate
 ```
 
 Or simply open the project in Android Studio and press **Run**. CI (`.github/workflows/android.yml`) runs lint, unit tests, and an assemble step on every push/PR to `main`.
+
+## Architecture
+
+The app follows **Clean Architecture** split into three layers per feature, plus a shared `core` layer and a hand-rolled `di` container (no Dagger/Hilt/Koin — dependencies are wired manually so the wiring stays easy to read and step through).
+
+```
+presentation  →  domain  →  data
+   (UI/VM)      (interfaces)  (repositories/network/storage)
+```
+
+- **presentation** — Jetpack Compose screens + `ViewModel`s exposing UI state as `StateFlow`. Only depends on `domain` interfaces.
+- **domain** — Plain Kotlin: use case interfaces (`*UseCaseProtocol`) and their implementations, plus domain models. No Android framework imports.
+- **data** — Repositories that implement domain contracts by talking to network (Retrofit) and storage (`EncryptedSharedPreferences`), mapping DTOs to domain models.
+
+Dependencies point inward (`presentation → domain ← data`); `domain` never imports from `data` or `presentation`.
+
+### Folder structure
+
+```
+app/src/main/java/com/aks/boilerplate/
+├── BoilerplateApplication.kt        # Application class, owns the DI container
+├── MainActivity.kt
+├── core/
+│   ├── network/                     # NetworkClient (Retrofit + OkHttp), ApiError
+│   ├── storage/                     # SecureStorage (EncryptedSharedPreferences)
+│   └── extensions/                  # Context/Flow extensions shared across features
+├── di/
+│   └── AppModule.kt                 # Manual DI graph (lazy singletons + factories)
+├── features/
+│   └── auth/
+│       ├── data/                    # AuthRepository, AuthApi, DTOs
+│       ├── domain/                  # AuthUseCaseProtocol, AuthUseCase, domain models
+│       └── presentation/            # LoginViewModel, LoginScreen
+└── ui/
+    └── theme/                       # Color, Type, Theme, Spacing/Radius design tokens
+```
+
+Each new feature follows the same `data / domain / presentation` split under `features/<feature-name>/`.
+
+### Dependency injection
+
+There is no DI framework. [`AppModule`](app/src/main/java/com/aks/boilerplate/di/AppModule.kt) is a plain class that lazily builds singletons (network client, secure storage, repositories) and exposes factory functions for objects that need a new instance per screen (ViewModels). It's constructed once in [`BoilerplateApplication`](app/src/main/java/com/aks/boilerplate/BoilerplateApplication.kt) and handed to `Activity`/`Composable` call sites.
