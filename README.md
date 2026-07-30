@@ -1,57 +1,32 @@
 # android-boilerplate
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![API](https://img.shields.io/badge/API-29%2B-brightgreen)](https://developer.android.com/tools/releases/platforms)
 [![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
+[![API](https://img.shields.io/badge/API-29%2B-brightgreen)](https://developer.android.com/tools/releases/platforms)
+[![Android Studio](https://img.shields.io/badge/Android%20Studio-latest%20stable-3DDC84?logo=androidstudio&logoColor=white)](https://developer.android.com/studio)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Android CI](https://github.com/aks5686/android-boilerplate/actions/workflows/android.yml/badge.svg)](https://github.com/aks5686/android-boilerplate/actions/workflows/android.yml)
 
-Production-ready Android architecture boilerplate with Clean Architecture, MVVM, Jetpack Compose, Kotlin Coroutines, and GitHub Actions CI/CD.
+Production-ready Android boilerplate with Clean Architecture, MVVM, Jetpack Compose, Kotlin Coroutines and GitHub Actions CI/CD.
 
 ## Getting Started
 
-1. Create your repo from this template: click [**Use this template**](https://github.com/aks5686/android-boilerplate/generate) (or **Fork** if templates aren't enabled).
-2. Clone it locally:
+1. Click **Use this template** on GitHub.
+2. Clone your repo locally:
    ```bash
    git clone https://github.com/<your-account>/<your-repo>.git
    cd <your-repo>
    ```
-3. Commit before renaming, so you have a clean checkpoint to diff against or revert to:
+3. Commit before renaming (important — this is your clean baseline):
    ```bash
    git add -A
    git commit -m "chore: initial checkout from template"
    ```
-4. Run the setup script with your app name to rename the package, applicationId, app name, and CI references throughout the project:
+4. Run:
    ```bash
    ./setup.sh YourAppName
    ```
-5. Open the project in Android Studio and press **Run**.
-
-`setup.sh` only renames source — it does not run a Gradle build, touch this README, or modify `.gitignore`.
-
-### Running the project locally
-
-Requirements: JDK 17, Android Studio (latest stable), Android SDK Platform 36.
-
-```bash
-# Clone and enter the project (skip if already done above)
-git clone https://github.com/aks5686/android-boilerplate.git
-cd android-boilerplate
-
-# Build a debug APK from the command line
-./gradlew assembleDebug
-
-# Run unit tests
-./gradlew testDebugUnitTest
-
-# Run lint
-./gradlew lintDebug
-
-# Install and run on a connected device/emulator
-./gradlew installDebug
-```
-
-Or simply open the project in Android Studio and press **Run**. CI (`.github/workflows/android.yml`) runs lint, unit tests, and an assemble step on every push/PR to `main`.
+5. Open in Android Studio and run.
 
 ## Architecture
 
@@ -68,7 +43,11 @@ presentation  →  domain  →  data
 
 Dependencies point inward (`presentation → domain ← data`); `domain` never imports from `data` or `presentation`.
 
-### Folder structure
+### Dependency injection
+
+There is no DI framework. [`AppModule`](app/src/main/java/com/aks/boilerplate/di/AppModule.kt) is a plain class that lazily builds singletons (network client, secure storage, repositories) and exposes factory functions for objects that need a new instance per screen (ViewModels). It's constructed once in [`BoilerplateApplication`](app/src/main/java/com/aks/boilerplate/BoilerplateApplication.kt) and handed to `Activity`/`Composable` call sites.
+
+## Folder Structure
 
 ```
 app/src/main/java/com/aks/boilerplate/
@@ -91,6 +70,41 @@ app/src/main/java/com/aks/boilerplate/
 
 Each new feature follows the same `data / domain / presentation` split under `features/<feature-name>/`.
 
-### Dependency injection
+## Features
 
-There is no DI framework. [`AppModule`](app/src/main/java/com/aks/boilerplate/di/AppModule.kt) is a plain class that lazily builds singletons (network client, secure storage, repositories) and exposes factory functions for objects that need a new instance per screen (ViewModels). It's constructed once in [`BoilerplateApplication`](app/src/main/java/com/aks/boilerplate/BoilerplateApplication.kt) and handed to `Activity`/`Composable` call sites.
+- **Clean Architecture + MVVM** — `presentation / domain / data` layering per feature, described above.
+- **Jetpack Compose UI** — Material 3 theming with shared `Color`, `Type`, `Theme`, and `Spacing` design tokens.
+- **Kotlin Coroutines & Flow** — `StateFlow`-driven UI state, structured concurrency throughout the data layer.
+- **Networking** — Retrofit + OkHttp `NetworkClient` with a logging interceptor and typed `ApiError` handling.
+- **Secure storage** — `SecureStorage` wrapper around `EncryptedSharedPreferences` for tokens/session data.
+- **Manual DI** — a plain `AppModule` container, no Dagger/Hilt/Koin required.
+- **Auth flow** — email/password login screen with validation, wired to `AuthRepository` via `AuthUseCaseProtocol`.
+- **Project rename script** — `./setup.sh` renames the package, applicationId, app name, and CI references in one step.
+
+## CI/CD
+
+`.github/workflows/android.yml` runs on every push/PR to `main`:
+
+- **Lint** — `./gradlew lintDebug`
+- **Unit tests** — `./gradlew testDebugUnitTest`
+- **Build** — `./gradlew assembleDebug`, uploading the debug APK as a build artifact
+
+Requirements for local builds: JDK 17, Android Studio (latest stable), Android SDK Platform 36.
+
+```bash
+# Build a debug APK from the command line
+./gradlew assembleDebug
+
+# Run unit tests
+./gradlew testDebugUnitTest
+
+# Run lint
+./gradlew lintDebug
+
+# Install and run on a connected device/emulator
+./gradlew installDebug
+```
+
+## License
+
+Licensed under the [MIT License](LICENSE).
