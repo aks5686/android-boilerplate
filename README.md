@@ -10,37 +10,24 @@ Production-ready Android architecture boilerplate with Clean Architecture, MVVM,
 
 ## Getting Started
 
-### Option A: Use as a GitHub template
-
-1. Click [**Use this template**](https://github.com/aks5686/android-boilerplate/generate) (or **Fork** if templates aren't enabled).
-2. Clone your new repository:
+1. Create your repo from this template: click [**Use this template**](https://github.com/aks5686/android-boilerplate/generate) (or **Fork** if templates aren't enabled).
+2. Clone it locally:
    ```bash
    git clone https://github.com/<your-account>/<your-repo>.git
    cd <your-repo>
    ```
-3. Follow the package rename steps below, then open the project in Android Studio.
-
-### Option B: Clone manually and rename the package
-
-1. Clone the repository:
+3. Commit before renaming, so you have a clean checkpoint to diff against or revert to:
    ```bash
-   git clone https://github.com/aks5686/android-boilerplate.git my-app
-   cd my-app
+   git add -A
+   git commit -m "chore: initial checkout from template"
    ```
-2. Rename the application ID and namespace in `app/build.gradle.kts`:
-   ```kotlin
-   android {
-       namespace = "com.yourcompany.yourapp"
-       defaultConfig {
-           applicationId = "com.yourcompany.yourapp"
-       }
-   }
+4. Run the setup script with your app name to rename the package, applicationId, app name, and CI references throughout the project:
+   ```bash
+   ./setup.sh YourAppName
    ```
-3. In Android Studio, switch the Project panel to the **Project** view (not Android), then right-click `app/src/main/java/com/aks/boilerplate` → **Refactor → Rename** the package to `com.yourcompany.yourapp`. Let Android Studio update all imports/references automatically.
-   - Repeat for `app/src/test/java/com/aks/boilerplate` and `app/src/androidTest/java/com/aks/boilerplate`.
-4. Update the manifest's `android:name=".BoilerplateApplication"` reference if you rename that class, and update `app_name` in `app/src/main/res/values/strings.xml`.
-5. Update `rootProject.name` in `settings.gradle.kts` to your project's name.
-6. Search the project for remaining occurrences of `com.aks.boilerplate` or `Boilerplate` (e.g. `grep -r "com.aks.boilerplate" app/src`) and rename any that Android Studio's refactor missed.
+5. Open the project in Android Studio and press **Run**.
+
+`setup.sh` only renames source — it does not run a Gradle build, touch this README, or modify `.gitignore`.
 
 ### Running the project locally
 

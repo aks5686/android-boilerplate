@@ -4,7 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.aks.boilerplate.features.auth.presentation.LoginScreen
+import com.aks.boilerplate.features.home.presentation.HomeScreen
 import com.aks.boilerplate.ui.theme.BoilerplateTheme
 
 class MainActivity : ComponentActivity() {
@@ -16,10 +21,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BoilerplateTheme {
-                LoginScreen(
-                    viewModel = appModule.provideLoginViewModel(),
-                    onLoginSuccess = { /* TODO: navigate to home once it exists */ },
-                )
+                var isLoggedIn by remember { mutableStateOf(false) }
+
+                if (isLoggedIn) {
+                    HomeScreen()
+                } else {
+                    LoginScreen(
+                        viewModel = appModule.provideLoginViewModel(),
+                        onLoginSuccess = { isLoggedIn = true },
+                    )
+                }
             }
         }
     }
