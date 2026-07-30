@@ -76,6 +76,96 @@ Each new feature follows the same `data / domain / presentation` split under `fe
 - **Auth flow** — email/password login screen with validation, wired to `AuthRepository` via `AuthUseCaseProtocol`.
 - **Project rename script** — `./setup.sh` renames the package, applicationId, app name, and CI references in one step.
 
+## Usage Guide
+
+### Adding a new feature
+
+Follow the same `data / domain / presentation` split as `features/auth/`:
+
+1. **Domain** — define the contract and models first, with no Android imports:
+   ```
+   features/<feature>/domain/
+   ├── <Feature>UseCaseProtocol.kt   # interface consumed by presentation
+   ├── <Feature>UseCase.kt           # implementation, depends on the data-layer repository
+   └── <Feature>.kt                  # plain domain model(s)
+   ```
+2. **Data** — implement the repository against the domain contract, talking to `NetworkClient`/`SecureStorage` and mapping DTOs to domain models:
+   ```
+   features/<feature>/data/
+   ├── <Feature>Api.kt        # Retrofit service interface
+   ├── <Feature>Dto.kt        # network DTOs
+   └── <Feature>Repository.kt # implements the use case's dependency, maps DTO → domain model
+   ```
+3. **Presentation** — build the `ViewModel` (exposing `StateFlow<UiState>`) and the Compose screen, depending only on the domain `*UseCaseProtocol`:
+   ```
+   features/<feature>/presentation/
+   ├── <Feature>ViewModel.kt
+   └── <Feature>Screen.kt
+   ```
+4. **Wire it into `AppModule`** — add lazy singletons for the API/repository and a `use case`, plus a `provide<Feature>ViewModel()` factory, following the `authApi` / `authRepository` / `authUseCase` pattern already in [`AppModule`](app/src/main/java/com/aks/boilerplate/di/AppModule.kt):
+   ```kotlin
+   private val <feature>Api: <Feature>Api by lazy { networkClient.createService(<Feature>Api::class.java) }
+   private val <feature>Repository: <Feature>Repository by lazy { <Feature>Repository(<feature>Api, secureStorage) }
+   val <feature>UseCase: <Feature>UseCaseProtocol by lazy { <Feature>UseCase(<feature>Repository) }
+
+   fun provide<Feature>ViewModel(): <Feature>ViewModel = <Feature>ViewModel(<feature>UseCase)
+   ```
+
+### Networking
+
+[`NetworkClient`](app/src/main/java/com/aks/boilerplate/core/network/NetworkClient.kt) wraps Retrofit + OkHttp and is built once as a singleton in `AppModule`, with the auth token supplied from `SecureStorage`:
+
+```kotlin
+private val networkClient: NetworkClient by lazy {
+    NetworkClient(
+        baseUrl = BuildConfig.BASE_URL,
+        authTokenProvider = { secureStorage.getString(SecureStorage.KEY_ACCESS_TOKEN) },
+    )
+}
+```
+
+To call an endpoint, define a Retrofit service interface for the feature and create it via `NetworkClient.createService`:
+
+```kotlin
+interface <Feature>Api {
+    @GET("<feature>/me")
+    suspend fun getProfile(): ProfileDto
+}
+
+private val <feature>Api: <Feature>Api by lazy { networkClient.createService(<Feature>Api::class.java) }
+```
+
+Every request automatically goes through the `User-Agent` header, the bearer-token auth interceptor, the error interceptor (401 hook point), and body logging in debug builds — no per-request setup needed.
+
+### Secure Storage
+
+[`SecureStorage`](app/src/main/java/com/aks/boilerplate/core/storage/SecureStorage.kt) wraps `EncryptedSharedPreferences` for small sensitive values (tokens, session flags). It's a singleton in `AppModule`:
+
+```kotlin
+private val secureStorage: SecureStorage by lazy { SecureStorage(applicationContext) }
+```
+
+Usage from a repository:
+
+```kotlin
+secureStorage.putString(SecureStorage.KEY_ACCESS_TOKEN, token)
+val token = secureStorage.getString(SecureStorage.KEY_ACCESS_TOKEN)
+secureStorage.remove(SecureStorage.KEY_REFRESH_TOKEN)
+secureStorage.clear() // e.g. on logout
+```
+
+Add new keys as constants on `SecureStorage.Companion` rather than hardcoding string keys at call sites.
+
+### Testing
+
+Run the unit test suite from the command line:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+This is also what CI runs on every push/PR to `main` (see below).
+
 ## CI/CD
 
 `.github/workflows/android.yml` runs on every push/PR to `main`:
