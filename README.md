@@ -17,16 +17,11 @@ Production-ready Android boilerplate with Clean Architecture, MVVM, Jetpack Comp
    git clone https://github.com/<your-account>/<your-repo>.git
    cd <your-repo>
    ```
-3. Commit before renaming (important — this is your clean baseline):
-   ```bash
-   git add -A
-   git commit -m "chore: initial checkout from template"
-   ```
-4. Run:
+3. Run:
    ```bash
    ./setup.sh YourAppName
    ```
-5. Open in Android Studio and run.
+4. Open in Android Studio and run.
 
 ## Architecture
 
